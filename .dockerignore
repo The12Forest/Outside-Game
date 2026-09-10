@@ -1,0 +1,29 @@
+# Version control / CI
+.git
+.gitignore
+.github
+.vscode
+
+# Installed inside the image
+node_modules
+npm-debug.log*
+
+# Secrets. These MUST be mounted at runtime, never baked into an image layer.
+Cert
+*.pem
+*.key
+
+# Runtime data written by the app (gitignored, host-owned)
+LOG
+Images
+backend/saves/photos
+
+# Local env / docs
+.env
+.env.*
+*.log
+docker-compose*.yml
+
+# Build files are not needed inside the image
+Dockerfile
+.dockerignore
