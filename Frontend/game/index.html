@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outsidegame</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Changa+One:ital@0;1&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div>
+        <main>
+            <div class="Head">
+                <h1>Game</h1>
+                <p id="game_code"></p>
+            </div>
+            <div id="camera">
+                <button id="Capture_image">Capture</button>
+                <video id="video" class="mirror" autoplay muted playsinline></video>
+            </div>
+        </main>
+    </div>
+
+    <script src="/functions/cookie.js"></script>
+    <script src="/functions/camera.js"></script>
+    <script src="/functions/api.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
