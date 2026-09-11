@@ -11,6 +11,8 @@ window.addEventListener("load", async () => {
             window.location.href = "/";
             return;
         }
+    } else {
+        window.location.href = "/";
     }
 
     await startCamera(Camera_facing);
