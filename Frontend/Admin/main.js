@@ -5,7 +5,7 @@ window.addEventListener("load", async () => {
     if (adminPW) {
         const isValid = await checkPassword(adminPW);
         if (isValid) {
-            navigation.navigate("/panel", { history: "replace" });
+            window.location.href = "/panel";
             return;
         } else {
             console.warn("Stored Password for admin is wrong!");
@@ -25,8 +25,8 @@ document.getElementById("loginButton").addEventListener("click", async (event) =
     const isValid = await checkPassword(adminPW);
 
     if (isValid) {
-        navigation.navigate("/panel");
         setCookie("adminPW", adminPW, 365)
+        window.location.href = "/panel";
     } else {
         errorEl.classList.remove("invisible");
     }

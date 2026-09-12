@@ -1,11 +1,13 @@
 import express from "express"
-import fs from 'fs';
-import path from "path";
 import log from '../../functions/log.js';
+import { adminAuth } from '../../functions/auth.js';
 const console = { log: log('CodeRouter') };
 const router = express.Router()
 let active_code = [123, 456]
 //first code is runner seccond code is catcher
+
+// Teams registry: [{ id, runner, catcher, runnerName, catcherName, createdAt }]
+let teams = []
 
 function makeid(length) {
     var result = '';
@@ -59,30 +61,60 @@ function codeTeam(code) {
 }
 
 
-router.get("/newteam", async (req, res) => {
+router.get("/newteam", adminAuth, async (req, res) => {
     let code_runner  = makeid(4)
     let code_catcher = makeid(4)
     while (code_catcher == code_runner) {
-        let code_catcher = makeid(4)
+        code_catcher = makeid(4)
     }
     active_code.push(code_runner)
     active_code.push(code_catcher)
 
-    res.cookie('code_runner', code_runner, {
-        maxAge: (5 * 60 * 60 * 1000),
-        secure: true,
-        sameSite: 'lax'
-    });
-    res.cookie('code_catcher', code_catcher, {
-        maxAge: (5 * 60 * 60 * 1000),
-        secure: true,
-        sameSite: 'lax'
-    });
+    const team = {
+        id: teams.length + 1,
+        runner: code_runner,
+        catcher: code_catcher,
+        runnerName: String(req.body?.runnerName || req.query?.runnerName || "Runner").slice(0, 24),
+        catcherName: String(req.body?.catcherName || req.query?.catcherName || "Catcher").slice(0, 24),
+        createdAt: Date.now()
+    }
+    teams.push(team)
 
-    res.status(200).json({ ok: true, runner: code_runner, catcher: code_catcher })
+    console.log(`New team created: runner=${code_runner} catcher=${code_catcher}`)
+
+    res.status(200).json({ ok: true, ...team })
+})
+
+router.post("/newteam", adminAuth, async (req, res) => {
+    let code_runner  = makeid(4)
+    let code_catcher = makeid(4)
+    while (code_catcher == code_runner) {
+        code_catcher = makeid(4)
+    }
+    active_code.push(code_runner)
+    active_code.push(code_catcher)
+
+    const team = {
+        id: teams.length + 1,
+        runner: code_runner,
+        catcher: code_catcher,
+        runnerName: String(req.body?.runnerName || req.query?.runnerName || "Runner").slice(0, 24),
+        catcherName: String(req.body?.catcherName || req.query?.catcherName || "Catcher").slice(0, 24),
+        createdAt: Date.now()
+    }
+    teams.push(team)
+
+    console.log(`New team created: runner=${code_runner} catcher=${code_catcher}`)
+
+    res.status(200).json({ ok: true, ...team })
+})
+
+// Admin: list active teams + codes
+router.get("/teams", adminAuth, async (req, res) => {
+    res.status(200).json({ ok: true, codes: active_code, teams })
 })
 
 
 
-export { router, codeTeam }
+export { router, codeTeam, teams }
 

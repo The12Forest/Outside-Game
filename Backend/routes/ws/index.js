@@ -1,5 +1,6 @@
 import log from '../../functions/log.js';
 const console = { log: log('WebSocket') };
+const logprefix = 'WebSocket:'
 let io_instance = null
 let gameGroups = {}
 

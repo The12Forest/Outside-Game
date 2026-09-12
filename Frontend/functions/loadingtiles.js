@@ -1,83 +1,123 @@
 let loadingTitlesInterval
 let loadingTitleTimeout
 let timeSubTitleStart
+let loadingTitlesShown = false
 
 const loadingTitles = [
-    "Overthrowing the government...",
-    "Starting nuclear_operation.bat...",
-    "Calibrating the FICSIT coffee machine...",
-    "Convincing the space elevator to cooperate...",
-    "Reassembling the assembler...",
-    "Paving over the wildlife...",
-    "Bribing the lizard doggos...",
-    "Spinning up the hypertubes...",
-    "Untangling the conveyor spaghetti...",
-    "Waking up the pioneers...",
-    "Handshaking with the nearest hub...",
-    "Compiling the laws of physics...",
-    "Feeding the biomass burners...",
-    "Negotiating with the stingers...",
-    "Overthrowing the local government...",
-    "Filing for bankruptcy in advance...",
-    "Convincing the AI that humans are still useful...",
-    "Untangling the spaghetti code...",
-    "Aggressively optimizing unnecessary features...",
-    "Hiding bugs under a tiny virtual rug...",
-    "Negotiating with hostile wildlife...",
-    "Bribing the physics engine to behave...",
-    "Generating plausible excuses for server lag...",
-    "Converting coffee directly into source code...",
-    "Rerouting power from life support to cosmetic lighting...",
-    "Deleting the 'Do Not Delete' folder...",
-    "Consulting the legal team regarding war crimes...",
-    "Pretending this loading screen is doing complex math...",
-    "Summoning the Eldritch horrors of memory leaks...",
-    "Calibrating conveyor belt speed to maximum chaos...",
-    "Ignoring safety regulations for shareholder value...",
-    "Warming up the fans to mimic jet engines...",
-    "Replacing competent staff with cheaper algorithms...",
-    "Blaming the player's hardware...",
-    "Polishing pixels until they shine...",
-    "Re-evaluating life choices at 3:00 AM...",
-    "Baking ambient occlusion into bad decisions...",
-    "Synthesizing artificial sense of accomplishment...",
-    "Suppressing unionization attempts among factory drones...",
-    "Reticulating splines...",
-    "Deploying questionable engineering practices...",
-    "Warming up the microwave...",
-    "Sharpening the chainsaw...",
-    "Polishing the factory floor...",
-    "Requesting permission from the FICSIT overlords...",
-    "Refusing to take responsibility...",
-    "Counting to a very large number...",
-    "Downloading more RAM...",
-    "Aligning the satellite dish...",
-    "Ignoring the safety manual...",
-    "Brewing an unhealthy amount of coffee...",
-    "Filing the paperwork for world domination...",
-    "Reheating yesterday's spaghetti...",
-    "Sending thoughts and prayers to the servers...",
-    "Consulting the magic 8-ball...",
-    "Poking the server with a stick...",
-    "Removing bugs (adding new bugs)...",
-    "Generating breathtaking vistas...",
-    "Overclocking the toaster...",
-    "Losing the game...",
-    "Tripping over a cable...",
-    "Pretending to know what we are doing...",
-    "Awakening the ancient conveyor gods...",
-    "Scheduling a meeting that could have been an email...",
-    "Loading quantum tunnel #42...",
-    "Reverse-engineering the rules of fun...",
-    "Sharpening the shovel of destiny...",
-    "Tuning the gravity slider...",
-    "Begging the GPS for a signal...",
-    "Encrypting your secrets with duct tape...",
-    "Charging the crystals...",
-    "Asking the player to please wait...",
-    "Summoning the loading screen...",
-    "Doing absolutely nothing, but slowly...",
-    "Almost there (this is a lie)...",
+    // Deadpan Anti-Advice
+    "Tip: Avoid bullets by occupying different coordinates.",
+    "Drowning? Discontinue inhaling water.",
+    "Tip: Explosions are easiest avoided by being somewhere else.",
+    "On fire? Stop, drop, and consider your choices.",
+    "Tip: Decapitation significantly hinders forward visibility.",
+    "Out of ammo? Try asking nicely.",
+    "Bleeding out? Keep the red fluids inside.",
+
+    // Absurdist Bureaucracy
+    "Permit required prior to scheduled demise.",
+    "Fainting during work hours requires a doctor's note in advance.",
+    "Register all panic attacks 48 hours prior.",
+    "Severed limbs remain company property.",
+    "Submit Form 4-B to validate incoming fire.",
+    "Dying on duty is considered an unexcused absence.",
+    "Screaming requires Facilities approval.",
+
+    // Chilly Indifference
+    "Please expire over the designated drain.",
+    "Your replacement is already on the elevator.",
+    "Do not bleed on the lobby carpet.",
+    "Your badge outvalues your biomass.",
+    "Clean your desk before your heart stops.",
+    "Janitorial drones are tracking your coordinates.",
+    "Your output will be missed; you will not.",
+    // Deadpan Anti-Advice
+
+    "Tip: Falling objects have the right-of-way.",
+    "Poisoned? Try simply rejecting the premise.",
+    "Tip: Bullets travel faster if you run toward them.",
+    "Suffocating? Budget your remaining breaths wisely.",
+    "Tip: The safest place during a blast is elsewhere.",
+    "Stalked by predators? Act confident and indigestible.",
+    "Crushed by heavy machinery? Maintain good posture.",
+    "Tip: Closing your eyes renders the threat unverified.",
+    "Freezing? Increase internal friction by working harder.",
+    "Tip: High-voltage cables are spicy, not friendly.",
+
+    // Absurdist Bureaucracy
+    "Surrender requests require supervisor sign-off.",
+    "Oxygen beyond quota will be billed hourly.",
+    "File Form 9-C to authorize reflexive flinching.",
+    "Loss of consciousness is an unbilled break.",
+    "All spontaneous combustion requires prior approval.",
+    "Tears on company hardware violate warranty terms.",
+    "Submit incident report before succumbing to wounds.",
+    "Unlicensed blinking docks your annual bonus.",
+    "Heart failure during meetings requires agenda item.",
+    "Post-mortem disputes must be filed in person.",
+    
+    // Deadpan Anti-Advice
+    "Tip: Being disintegrated permanently clears your schedule.",
+    "Blinded by flashbangs? Simply recall what the room looked like.",
+    "Tip: To avoid landmines, step strictly on the un-mined soil.",
+    "Mauled by wildlife? Do not reward their aggression with a reaction.",
+    "Tip: Sharp debris enters the body faster than it leaves.",
+    "Impaled? Leave the spike inserted to prevent rapid leakage.",
+    "Tip: Armor functions best when placed between yourself and damage.",
+    "Radiation leak? Absorb less ambient ionization through sheer will.",
+    "Tip: Panic uses precious calories best reserved for running.",
+    "Trapped in vacuum? Retain your lung air to create personal ballast.",
+    "Tip: Acid only burns the parts of you that touch it.",
+    "Swallowed whole? Enjoy the complimentary digestive shelter.",
+    "Tip: Hostile turrets cannot target what they refuse to acknowledge.",
+    "Sinking in quicksand? Try standing on your own shoulders.",
+    "Tip: Free-fall turbulence can be mitigated by not looking down.",
+    "Targeted by an orbital strike? Move two meters to the left.",
+    "Tip: Broken bones are simply improvised internal levers.",
+    "Freezing in cryo-sleep? Think intensely warm thoughts.",
+    "Tip: Knives are just non-ballistic close-range bullets.",
+    "Lost in toxic fog? Inhale shallowly and prioritize optimism.",
+    "Tip: The safest reload is not emptying the magazine first.",
+    "Suffering blood loss? Focus only on your vital organs.",
+    "Tip: Kinetic impacts stop hurting once velocity reaches zero.",
+    "Submerged in cooling fluid? Act like an inert mechanical rod.",
+    "Tip: Flame damage is easily cured by extinguishing the flame.",
+    "Engaged by an elite squad? Politely decline the encounter.",
+    "Tip: Concussions are just unprompted neuro-restructures.",
+    "Electrocuted? Disconnect your central nervous system promptly.",
+    "Tip: Sound travels slowly; outrun the blast alarm.",
+    "Punctured lungs? Shift respiration duties to the backup lung.",
+
+    // Absurdist Bureaucracy
+    "Decapitation must be stamped by a notary before burial.",
+    "File Form 12-K to acknowledge incoming shrapnel.",
+    "Unscheduled fainting will be billed as loitering.",
+    "Notify Human Resources three weeks before vital failure.",
+    "Bleeding onto company paper invalidates the form.",
+    "Terminal shrieks must stay under sixty-five decibels.",
+    "Damaged ribcages must be returned in their original packaging.",
+    "Submit receipt for consumed emergency rations within the hour.",
+    "Unauthorized resuscitation violates site trespass policies.",
+    "Eye loss does not waive reading safety disclaimers.",
+    "Survival of catastrophic drills requires written justification.",
+    "Please register secondary amputations under miscellaneous assets.",
+    "Hazardous exposure claims require pristine physical proof.",
+    "Do not bleed on the requisition forms you are submitting.",
+    "Corridor collapse disputes must be delivered via corridor.",
+    "Breathing outside shifts counts as unauthorized perks.",
+    "Request permit 77 before initiating emergency triage.",
+    "Defective clones must self-report to recycling desks.",
+    "Asphyxiation during work hours requires an exit pass.",
+    "All spontaneous necrosis must be pre-cleared by shift leads.",
+    "Verify identity via fingerprint using the severed digit.",
+    "Evacuation without an escort incurs an abandonment fine.",
+    "Post-mortem pension appeals require in-person signatures.",
+    "Submit a two-part voucher to authorize survival instinct.",
+    "Involuntary trembling wastes company kinetic energy.",
+    "Loss of operational sanity voids your transit voucher.",
+    "Organ retrieval costs will be deducted from your final pay.",
+    "Surviving a designated fatal sector violates work protocols.",
+    "Corpse collection requires two weeks advance reservation.",
+    "Failing to report your own death incurs a suspension."
 ]
    
 
@@ -88,15 +128,31 @@ function startLoadingTitles(timeSubTitleStart) {
 
     stopLoadingTitles()
 
-    el.innerText = isRunner ? "Time you have to send the next Image!" : "Get ready, the next Image is coming!"
+    el.innerText = isRunner ? "Time you have to send the next Image!u have to send the next Image!" : "Get ready, the next Image is ccoming!"
 
     loadingTitleTimeout = setTimeout(() => {
         loadingTitlesInterval = setInterval(() => {
             el.innerText = loadingTitles[Math.floor(Math.random() * loadingTitles.length)]
         }, 5000)
     }, 10000)
+
     //Whaits 10 sec then shows a new message every 5 sec
+    
+    // Show the message only once per game, not on every countdown restart.
+    if (loadingTitlesShown) return
+    loadingTitlesShown = true
+
+    el.innerText = isRunner
+        ? "You are the Runner, send the next Image before the time runs out!"
+        : "You are the Catcher, you can start once the Runner's lead time is over!"
+    
 }
+
+
+function resetLoadingTitles() {
+    loadingTitlesShown = false
+}
+
 
 function stopLoadingTitles() {
     if (loadingTitleTimeout) {

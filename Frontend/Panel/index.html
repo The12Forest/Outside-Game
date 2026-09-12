@@ -3,27 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Outsidegame</title>
+    <title>Outsidegame - Admin Overview</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Changa+One:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 </head>
 <body>
-    <div>
-        <main>
-            <div class="Head">
-                <h1>Admin Pannel</h1>
+    <header class="topbar">
+        <h1>Admin Overview</h1>
+        <div class="topbar-actions">
+            <span id="clock" class="clock"></span>
+            <button id="logoutBtn" class="btn ghost">Logout</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Team codes + QR -->
+        <section class="card">
+            <h2>Teams &amp; Codes</h2>
+            <div class="team-form">
+                <input type="text" id="runnerName" class="input" placeholder="Runner team name" maxlength="24">
+                <input type="text" id="catcherName" class="input" placeholder="Catcher team name" maxlength="24">
+                <button id="genCodesBtn" class="btn">Generate new team codes</button>
             </div>
-            <div>
-                <input type="text" class="input" name="GroupA" id="GroupAName">
-                <input type="text" class="input" name="GroupB" id="GroupBName">
+
+            <div class="qr-split">
+                <div class="qr-side runner">
+                    <div class="qr-box" id="qrRunner"><span class="qr-placeholder">No code yet</span></div>
+                    <h3 id="runnerTitle">Runner</h3>
+                    <p class="code-pill" id="runnerCode">—</p>
+                    <p class="qr-count" id="runnerCount">0 devices</p>
+                    <div class="qr-devices" id="runnerQrDevices"></div>
+                </div>
+                <div class="qr-divider"><span>VS</span></div>
+                <div class="qr-side catcher">
+                    <div class="qr-box" id="qrCatcher"><span class="qr-placeholder">No code yet</span></div>
+                    <h3 id="catcherTitle">Catcher</h3>
+                    <p class="code-pill" id="catcherCode">—</p>
+                    <p class="qr-count" id="catcherCount">0 devices</p>
+                    <div class="qr-devices" id="catcherQrDevices"></div>
+                </div>
             </div>
-        </main>
+            <div class="qr-actions">
+                <button id="fullscreenQrBtn" class="btn">⛶ Fullscreen QR Codes</button>
+            </div>
+            <p class="hint">Scan with a phone to join instantly. Runner left, Catcher right.</p>
+        </section>
+
+        <!-- Game control -->
+        <section class="card">
+            <h2>Game Control</h2>
+            <div class="team-form">
+                <label class="control-label" for="leadtimeInput">Runner lead time (seconds)</label>
+                <input type="number" id="leadtimeInput" class="input" min="1" value="300" placeholder="300">
+                <label class="control-label" for="intervalInput">Photo interval (seconds)</label>
+                <input type="number" id="intervalInput" class="input" min="1" value="300" placeholder="300">
+                <button id="setIntervalBtn" class="btn">Set Interval</button>
+            </div>
+            <div class="team-form">
+                <button id="startGameBtn" class="btn">Start Game</button>
+                <button id="stopGameBtn" class="btn danger">Stop Game</button>
+            </div>
+            <p class="hint" id="gameStatusHint">Game not started.</p>
+        </section>
+
+        <!-- Map -->
+        <section class="card">
+            <h2>Live Map</h2>
+            <div id="map"></div>
+            <p class="hint" id="mapHint">Loading map…</p>
+        </section>
+
+        <!-- Devices per team -->
+        <section class="card">
+            <h2>Devices</h2>
+            <div class="teams-grid">
+                <div class="team-col runner-col">
+                    <h3 class="team-head runner">Runner</h3>
+                    <div class="devices" id="runnerDevices"><p class="empty">No devices connected</p></div>
+                </div>
+                <div class="team-col catcher-col">
+                    <h3 class="team-head catcher">Catcher</h3>
+                    <div class="devices" id="catcherDevices"><p class="empty">No devices connected</p></div>
+                </div>
+            </div>
+            <h3 class="team-head neutral">❔ Unassigned</h3>
+            <div class="devices" id="unassignedDevices"><p class="empty">No devices connected</p></div>
+        </section>
+
+        <!-- Photos -->
+        <section class="card">
+            <h2>Photo Library</h2>
+            <div class="photos-grid" id="photosGrid"><p class="empty">No photos yet</p></div>
+        </section>
+    </main>
+
+    <!-- Fullscreen QR codes + countdown -->
+    <div class="qr-fullscreen hidden" id="qrFullscreen">
+        <button class="modal-close" id="qrFullscreenClose" aria-label="Close">×</button>
+
+        <div id="qrFullscreenContent">
+            <div class="qr-split qr-fullscreen-split">
+                <div class="qr-side runner">
+                    <div class="qr-box" id="qrRunnerFull"><span class="qr-placeholder">No code yet</span></div>
+                    <h3 id="runnerTitleFull">Runner</h3>
+                    <p class="code-pill" id="runnerCodeFull">—</p>
+                    <p class="qr-count" id="runnerCountFull">0 devices</p>
+                    <div class="qr-devices" id="runnerQrDevicesFull"></div>
+                </div>
+                <div class="qr-divider"><span>VS</span></div>
+                <div class="qr-side catcher">
+                    <div class="qr-box" id="qrCatcherFull"><span class="qr-placeholder">No code yet</span></div>
+                    <h3 id="catcherTitleFull">Catcher</h3>
+                    <p class="code-pill" id="catcherCodeFull">—</p>
+                    <p class="qr-count" id="catcherCountFull">0 devices</p>
+                    <div class="qr-devices" id="catcherQrDevicesFull"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="qrFullscreenCountdown" class="hidden">
+            <p class="fs-countdown-label" id="fsCountdownLabel">Game started</p>
+            <p class="fs-countdown" id="fsCountdown">05:00</p>
+            <p class="fs-countdown-sub" id="fsCountdownSub">Runner lead time</p>
+        </div>
+    </div>
+
+    <!-- Confirm new codes -->
+    <div class="modal hidden" id="confirmModal">
+        <div class="modal-box confirm-box">
+            <h2>Generate new codes?</h2>
+            <p id="confirmText" class="confirm-text">This will add a new Runner / Catcher code pair. Existing codes keep working.</p>
+            <div class="confirm-actions">
+                <button id="confirmCancel" class="btn ghost">Cancel</button>
+                <button id="confirmOk" class="btn danger">Generate</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Device detail modal -->
+    <div class="modal hidden" id="deviceModal">
+        <div class="modal-box">
+            <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+            <h2 id="modalTitle">Device</h2>
+            <div id="modalInfo" class="modal-info"></div>
+            <div class="stream-wrap">
+                <img id="streamImg" alt="Live stream" class="hidden">
+                <div id="streamPlaceholder" class="stream-placeholder">No live stream</div>
+            </div>
+            <div class="stream-controls">
+                <button id="streamStart" class="btn">Start Stream</button>
+                <button id="streamStop" class="btn danger hidden">Stop Stream</button>
+                <button id="cameraEnv" class="btn hidden">Back Camera</button>
+                <button id="cameraFace" class="btn hidden">Front Camera</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Photo lightbox -->
+    <div class="lightbox hidden" id="lightbox">
+        <button class="modal-close" id="lightboxClose" aria-label="Close">×</button>
+        <img id="lightboxImg" alt="Photo">
     </div>
 
     <script src="/functions/cookie.js"></script>
-    <script src="/functions/api.js"></script>
+    <script src="/functions/qrcode.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="main.js"></script>
 </body>
 </html>

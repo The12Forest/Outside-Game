@@ -54,9 +54,9 @@ async function reDraw(i_state) {
             stopLoadingTitles()
             toEnable.push("linkToMaps")
             if (!isRunner) {
-                toEnable.push("startCameraBtn")
-            } else {
                 toEnable.push("linkToMaps_a")
+            } else {
+                toEnable.push("startCameraBtn")
             }
             break;
 

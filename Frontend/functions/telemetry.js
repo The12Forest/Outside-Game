@@ -1,6 +1,24 @@
 const telemetry_url = "/api/telemetry"
 let telemetry_interval
 let telemetry_busy = false
+let currentDeviceId = null
+
+function getDeviceId() {
+    if (currentDeviceId) return currentDeviceId
+    if (typeof getCookie === "function") {
+        const fromCookie = getCookie("deviceID")
+        if (fromCookie) return fromCookie
+    }
+    return null
+}
+
+function getCapabilities() {
+    return {
+        gps: 'geolocation' in navigator,
+        camera: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+        vibrate: 'vibrate' in navigator
+    }
+}
 
 async function getTelemetry() {
     let battery = null
@@ -48,7 +66,7 @@ async function getTelemetry() {
         console.warn("Geolocation is not supported in this browser.")
     }
 
-    return { battery, gps }
+    return { battery, gps, capabilities: getCapabilities() }
 }
 
 async function sendTelemetry() {
@@ -62,7 +80,16 @@ async function sendTelemetry() {
             },
             body: JSON.stringify(await getTelemetry())
         })
-        if (!response.ok) console.warn("Telemetry send failed:", response.status)
+        if (!response.ok) {
+            console.warn("Telemetry send failed:", response.status)
+            return
+        }
+        try {
+            const data = await response.json()
+            if (data?.deviceID) currentDeviceId = data.deviceID
+        } catch (err) {
+            // ignore malformed response
+        }
     } catch (err) {
         console.error("Telemetry send failed:", err)
     } finally {

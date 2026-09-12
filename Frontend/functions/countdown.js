@@ -24,7 +24,10 @@ class countdown {
     }
 
     start() {
-        this.stop()
+        // Restart the timers without flashing the "position shown" screen.
+        if (this.timer) { clearInterval(this.timer); this.timer = null }
+        if (this.updater) { clearInterval(this.updater); this.updater = null }
+
         this.fired = false
         this.render(this.remaining())
         if (!this.timer) this.timer = setInterval(() => this.count(), 10)

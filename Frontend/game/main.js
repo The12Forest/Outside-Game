@@ -3,6 +3,8 @@ let isRunner
 let countdownobj
 let performance_mode = true
 let mapsLinkUpdate
+let gameStarted = false
+let statusPoll
 
 
 window.addEventListener("load", async () => {
@@ -48,14 +50,88 @@ window.addEventListener("load", async () => {
         window.location.href = "/";
     }
 
-    reDraw("countdown")
-
     startTelemetry(10 * 1000) //every 10 sec
+    startStreamMonitor() //allow admin to request a live camera stream
     await syncServerTime();
+
+    showWaiting()
+    await checkGameStatus()
+    statusPoll = setInterval(checkGameStatus, 1000)
+});
+
+async function checkGameStatus() {
+    try {
+        const res = await fetch("/api/time/deadline")
+        if (!res.ok) return
+        const data = await res.json()
+        const running = data.state === "running"
+
+        if (running && !gameStarted) {
+            gameStarted = true
+            startGameCountdown()
+        } else if (!running && gameStarted) {
+            gameStarted = false
+            stopCountdownUI()
+            showWaiting()
+        } else if (!running) {
+            // keep the device id fresh while the game hasn't started yet
+            updateDeviceId(true)
+        }
+    } catch (err) {
+        console.error("Game status check failed:", err)
+    }
+}
+
+function updateDeviceId(show) {
+    const el = document.getElementById("game_code")
+    if (!el) return
+    if (show) {
+        const id = getDeviceId()
+        el.textContent = id ? `Device: ${id.slice(0, 8)}` : ""
+    } else {
+        el.textContent = ""
+    }
+}
+
+function showWaiting() {
+    const p = document.getElementById("countdown_p")
+    if (p) p.textContent = "Waiting…"
+    const sub = document.getElementById("countodwn_subtitle")
+    if (sub) sub.textContent = "Waiting for the admin to start the game…"
+
+    updateDeviceId(true)
+
+    // Reset to a clean waiting screen (only the countdown area)
+    document.getElementById("countdown_div").classList.remove("invisible")
+    document.getElementById("camera").classList.add("invisible")
+    document.getElementById("linkToMaps").classList.add("invisible")
+    document.getElementById("image").classList.add("invisible")
+    document.getElementById("Capture_image").classList.add("invisible")
+    document.getElementById("startCameraBtn").classList.add("invisible")
+    document.getElementById("showImageBtn").classList.add("invisible")
+    document.getElementById("hideImageBtn").classList.add("invisible")
+    document.getElementById("linkToMaps_a").classList.add("invisible")
+}
+
+function startGameCountdown() {
+    if (countdownobj) return
+    resetLoadingTitles() // allow the message to show once for this game
+    reDraw("countdown")
+    updateDeviceId(false)
     countdownobj = new countdown("countdown_p", () => {
         onTimeEnd()
-    });
-});
+    })
+}
+
+function stopCountdownUI() {
+    if (countdownobj) {
+        if (countdownobj.timer) clearInterval(countdownobj.timer)
+        if (countdownobj.updater) clearInterval(countdownobj.updater)
+        countdownobj.timer = null
+        countdownobj.updater = null
+        countdownobj = null
+    }
+}
 
 document.getElementById("startCameraBtn").addEventListener("click", async () => {
     startCamera()

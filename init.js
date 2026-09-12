@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import { Server } from 'socket.io';
 import { gameGroups, setupSocket } from './Backend/routes/ws/index.js';
 import log from './Backend/functions/log.js';
+import { adminPasswd } from './Backend/functions/auth.js';
 const console = { log: log('InitRouter') };
 
 
@@ -45,6 +46,14 @@ app.use("/api/telemetry",  telemetryRouter)
 // Static assets
 app.use('/functions', express.static(path.join(__dirname, 'Frontend/functions')));
 app.use('/game', express.static(path.join(__dirname, 'Frontend/game')));
+// Admin overview requires a valid adminPW cookie (assets stay public).
+app.use('/panel', (req, res, next) => {
+    const isHtml = req.path === '/' || req.path === '' || req.path.endsWith('/index.html');
+    if (isHtml && req.cookies?.adminPW !== adminPasswd()) {
+        return res.redirect('/admin');
+    }
+    next();
+});
 app.use('/panel', express.static(path.join(__dirname, 'Frontend/Panel')));
 app.use('/error', express.static(path.join(__dirname, 'Frontend/Error')));
 app.use('/admin', express.static(path.join(__dirname, 'Frontend/Admin')));

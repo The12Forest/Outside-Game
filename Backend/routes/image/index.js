@@ -5,6 +5,7 @@ import crypto from "crypto";
 import { resetNextDeadline } from "../time/index.js";
 import { fileURLToPath } from 'url';
 import log from '../../functions/log.js';
+import { adminAuth } from '../../functions/auth.js';
 const console = { log: log('GameRouter') };
 const router = express.Router()
 let logPrefix = 'GameRouter'
@@ -196,7 +197,77 @@ router.use((err, req, res, next) => {
 
 
 
+// --- Admin: photo library (Google-Photos style) -----------------------------
 
+const IMAGE_FILE_RE = /\.(jpe?g|png|webp|gif|heic|avif)$/i
+
+async function listAllImages() {
+    const out = []
+    let days = []
+    try {
+        days = (await fs.promises.readdir(imagesDir, { withFileTypes: true }))
+            .filter(d => d.isDirectory())
+            .map(d => d.name)
+            .sort()
+            .reverse()
+    } catch {
+        return out
+    }
+
+    for (const day of days) {
+        const dayDir = path.join(imagesDir, day)
+        let files = []
+        try {
+            files = await fs.promises.readdir(dayDir)
+        } catch {
+            continue
+        }
+        for (const name of files) {
+            if (!IMAGE_FILE_RE.test(name)) continue
+            const abs = path.join(dayDir, name)
+            let stat = null
+            try { stat = await fs.promises.stat(abs) } catch { continue }
+            out.push({
+                file: `${day}/${name}`,
+                day,
+                name,
+                size: stat.size,
+                mtime: stat.mtimeMs,
+                url: `/api/image/file/${day}/${encodeURIComponent(name)}`
+            })
+        }
+    }
+
+    out.sort((a, b) => b.mtime - a.mtime)
+    return out
+}
+
+// Admin: list all stored photos
+router.get("/all", adminAuth, async (req, res) => {
+    try {
+        const images = await listAllImages()
+        res.status(200).json({ ok: true, count: images.length, images })
+    } catch (err) {
+        console.log("List error:         " + err.message)
+        res.status(500).json({ ok: false, error: "could not list images" })
+    }
+})
+
+// Admin: serve a specific photo file
+router.get("/file/:day/:name", adminAuth, async (req, res) => {
+    const day = path.basename(req.params.day)
+    const name = path.basename(req.params.name)
+    const abs = path.join(imagesDir, day, name)
+
+    if (!abs.startsWith(imagesDir) || !fs.existsSync(abs)) {
+        return res.status(404).json({ ok: false, error: "image not found" })
+    }
+
+    const ext = (name.split('.').pop() || '').toLowerCase()
+    res.setHeader('Content-Type', EXT_MIME[ext] || 'application/octet-stream')
+    res.setHeader('Cache-Control', 'private, max-age=3600')
+    res.sendFile(abs)
+})
 
 router.use("", (req, res) => res.status(404).json({ error: "not found" }))
 export { router }
