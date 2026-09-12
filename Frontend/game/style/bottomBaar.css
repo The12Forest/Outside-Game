@@ -1,0 +1,43 @@
+#bottom_bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 30px;
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    box-sizing: border-box;
+}
+
+#Capture_image, #startCameraBtn, #showImageBtn, #hideImageBtn, #linkToMaps_a {
+    width: 20%;
+    min-width: 300px;
+    height: 40px;
+    padding: 0;
+    line-height: 40px;
+    color: white;
+    background-color: #3d3f75;
+    border: none;
+    border-radius: 7px;
+    font-weight: bold;
+    font-family: "Changa One", sans-serif;
+    font-size: 1rem;
+    text-align: center;
+    text-decoration: none;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+#Capture_image:hover, #startCameraBtn:hover, #showImageBtn:hover, #hideImageBtn:hover, #linkToMaps_a:hover {
+    background-color: #454785;
+}
+
+#Capture_image:active, #startCameraBtn:active, #showImageBtn:active, #hideImageBtn:active, #linkToMaps_a:active {
+    background-color: #5c5fae;
+}
+
+

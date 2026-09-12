@@ -17,24 +17,47 @@ function makeid(length) {
     return result;
 }
 
-router.get("/check", async (req, res) => {
+async function codeGet(req, res) {
     let code = req.query.code ?? req.params.code ?? req.body.code
     let codeID = active_code.indexOf(Number(code))
     if (codeID != -1) {
         res.cookie('code', code, {
-            maxAge: 240000,
-            secure: true,  
+            maxAge: (5 * 60 * 60 * 1000),
+            secure: true,
             sameSite: 'lax'
         });
-        if (codeID % 2) {
-            res.status(200).json({ ok: true, Group: "runner", Reason: "Code Correct!" })
+
+
+
+        if (!(codeID % 2)) {
+            res.cookie('group', "runner", {
+                maxAge: (5 * 60 * 60 * 1000),
+                secure: true,
+                sameSite: 'lax'
+            });
+            res.status(200).json({ ok: true, Group: "Runner", Reason: "Code Correct!" })
         } else {
-            res.status(200).json({ ok: true, Group: "catcher", Reason: "Code Correct!" })
+            res.cookie('group', "catcher", {
+                maxAge: (5 * 60 * 60 * 1000),
+                secure: true,
+                sameSite: 'lax'
+            });
+            res.status(200).json({ ok: true, Group: "Catcher", Reason: "Code Correct!" })
         }
     } else {
         res.status(401).json({ ok: false, Reason: "Code Wrong!" })
     }
-})
+}
+
+router.get("/check", codeGet)
+router.get("/group", codeGet)
+
+function codeTeam(code) {
+    const codeID = active_code.indexOf(Number(code))
+    if (codeID === -1) return null
+    return !(codeID % 2) ? "runner" : "catcher"
+}
+
 
 router.get("/newteam", async (req, res) => {
     let code_runner  = makeid(4)
@@ -46,12 +69,12 @@ router.get("/newteam", async (req, res) => {
     active_code.push(code_catcher)
 
     res.cookie('code_runner', code_runner, {
-        maxAge: 240000,
+        maxAge: (5 * 60 * 60 * 1000),
         secure: true,
         sameSite: 'lax'
     });
     res.cookie('code_catcher', code_catcher, {
-        maxAge: 240000,
+        maxAge: (5 * 60 * 60 * 1000),
         secure: true,
         sameSite: 'lax'
     });
@@ -61,5 +84,5 @@ router.get("/newteam", async (req, res) => {
 
 
 
-export { router }
+export { router, codeTeam }
 

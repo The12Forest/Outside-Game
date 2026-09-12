@@ -1,0 +1,48 @@
+.mirror {
+    transform: scaleX(-1);
+}
+
+#camera {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+#image {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+}
+
+#image:not(.invisible) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+video {
+    display: block;
+    width: inherit;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    margin: auto;
+}
+
+img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    margin: auto;
+}

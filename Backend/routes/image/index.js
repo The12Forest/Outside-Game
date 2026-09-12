@@ -1,6 +1,8 @@
 import express from "express"
 import fs from 'fs';
 import path from "path";
+import crypto from "crypto";
+import { resetNextDeadline } from "../time/index.js";
 import { fileURLToPath } from 'url';
 import log from '../../functions/log.js';
 const console = { log: log('GameRouter') };
@@ -10,23 +12,23 @@ let logPrefix = 'GameRouter'
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Images/ lives in the project root: Backend/routes/image -> ../../../Images
+
 const imagesDir = path.join(__dirname, '..', '..', '..', 'Images');
 fs.mkdirSync(imagesDir, { recursive: true });
 
 const pad = (n) => String(n).padStart(2, '0');
 
-// Folder name: YYYY-MM-DD
+
 function dayStamp(d = new Date()) {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-// File base name: HH-MM-SS (local time)
+
 function timeStamp(d = new Date()) {
     return `${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
 }
 
-// Maps the request's Content-Type to a file extension.
+
 const MIME_EXT = {
     'image/jpeg': 'jpg',
     'image/jpg': 'jpg',
@@ -37,9 +39,23 @@ const MIME_EXT = {
     'image/avif': 'avif'
 };
 
-// Writes the buffer to Images/<YYYY-MM-DD>/<HH-MM-SS>.<ext>, adding -1, -2, ...
-// if a photo with the same timestamp already exists.
-async function saveImage(buffer, ext) {
+const EXT_MIME = {
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'webp': 'image/webp',
+    'gif': 'image/gif',
+    'heic': 'image/heic',
+    'avif': 'image/avif'
+};
+
+const latestFile = path.join(imagesDir, '.latest.json');
+
+function newImageId() {
+    return crypto.randomUUID();
+}
+
+async function saveImage(buffer, ext, id) {
     const day = dayStamp();
     const dayDir = path.join(imagesDir, day);
     await fs.promises.mkdir(dayDir, { recursive: true });
@@ -52,10 +68,28 @@ async function saveImage(buffer, ext) {
     }
 
     await fs.promises.writeFile(path.join(dayDir, name), buffer);
-    return `${day}/${name}`;
+    return { id, file: `${day}/${name}`, size: buffer.length, time: Date.now() };
 }
 
-// Accepts a raw image body (Content-Type: image/*), not multipart.
+async function setLatestImage(meta) {
+    await fs.promises.writeFile(latestFile, JSON.stringify(meta), 'utf8');
+}
+
+async function getLatestImage() {
+    try {
+        const meta = JSON.parse(await fs.promises.readFile(latestFile, 'utf8'));
+        if (!meta || !meta.id || !meta.file) return null;
+
+        const absPath = path.join(imagesDir, meta.file);
+        if (!fs.existsSync(absPath)) return null;
+
+        return { ...meta, absPath };
+    } catch {
+        return null;
+    }
+}
+
+
 const rawImage = express.raw({ type: 'image/*', limit: '50mb' });
 
 
@@ -99,12 +133,58 @@ router.post("/post", rawImage, async (req, res) => {
     }
 
     try {
-        const relPath = await saveImage(req.body, MIME_EXT[mime] || 'jpg');
-        console.log("Image saved:         " + relPath + " (" + req.body.length + " bytes)")
-        res.status(200).json({ ok: true, file: relPath, size: req.body.length })
+        const id = newImageId();
+        const saved = await saveImage(req.body, MIME_EXT[mime] || 'jpg', id);
+        await setLatestImage({ id: saved.id, file: saved.file, size: saved.size, time: saved.time });
+        console.log("Image saved:         " + saved.file + " id=" + saved.id + " (" + saved.size + " bytes)")
+        res.status(200).json({ ok: true, id: saved.id, file: saved.file, size: saved.size })
+        resetNextDeadline()
     } catch (err) {
         console.log("Save error:          " + err.message)
         res.status(500).json({ ok: false, error: "could not save image" })
+    }
+})
+
+
+router.get("/latest", async (req, res) => {
+    try {
+        const latest = await getLatestImage();
+
+        if (!latest) {
+            return res.status(404).json({ ok: false, error: "no image available" })
+        }
+
+        const reqId = (req.query.id || req.headers['x-image-id'] || '').toString().trim();
+
+        if (reqId && reqId === latest.id) {
+            return res.status(200).json({ ok: false, id: latest.id, reason: "already up to date" })
+        }
+
+        if (req.query.info === 'true' || req.query.info === '1') {
+            res.setHeader('X-Image-Id', latest.id);
+            res.setHeader('Cache-Control', 'no-store');
+            return res.status(200).json({
+                ok: true,
+                id: latest.id,
+                file: latest.file,
+                size: latest.size,
+                time: latest.time
+            })
+        }
+
+        const ext = (latest.file.split('.').pop() || '').toLowerCase();
+
+        res.setHeader('Content-Type', EXT_MIME[ext] || 'application/octet-stream');
+        res.setHeader('Content-Length', latest.size);
+        res.setHeader('X-Image-Id', latest.id);
+        res.setHeader('Cache-Control', 'no-store');
+
+        const buffer = await fs.promises.readFile(latest.absPath);
+        console.log("Image served:        " + latest.id + " (" + latest.size + " bytes)")
+        res.status(200).send(buffer)
+    } catch (err) {
+        console.log("Read error:          " + err.message)
+        res.status(500).json({ ok: false, error: "could not read image" })
     }
 })
 

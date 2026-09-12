@@ -26,12 +26,15 @@ app.use(express.json(), express.urlencoded({ extended: true }), cookieParser());
 import { router as codeRouter       } from './Backend/routes/code/index.js';
 import { router as adminRouter      } from './Backend/routes/admin/index.js';
 import { router as imageRouter       } from './Backend/routes/image/index.js';
-import { router as gameRouter       } from './Backend/routes/game/index.js';
+import { router as timeRouter       } from './Backend/routes/time/index.js';
+import { router as telemetryRouter  } from './Backend/routes/telemetry/index.js';
+// import { router as gameRouter       } from './Backend/routes/game/index.js';
 
 app.use("/api/code",       codeRouter)
 app.use("/api/admin",      adminRouter)
 app.use("/api/image",      imageRouter)
-//app.use("/api/time",       codeRouter)
+app.use("/api/time",       timeRouter)
+app.use("/api/telemetry",  telemetryRouter)
 //app.use("/api/main",       mainRouter)
 //app.use("/api/task",       tasksRouter)
 //app.use("/api/user",       userRouter)

@@ -20,6 +20,10 @@ window.addEventListener("load", () => {
                 title.textContent = "Falscher Code";
                 message.textContent = "Der eingegebene Code ist ungültig. Bitte überprüfe ihn und versuch es erneut.";
                 break;
+            case "faildeGPS":
+                title.textContent = "Failed GPS";
+                message.textContent = "Der Server konnte das GPS noch nicht laden, bitte versuche es erneut.";
+                break;
             default:
                 // Show a raw message if provided, else keep the default text
                 title.textContent = "Etwas ist schiefgelaufen";

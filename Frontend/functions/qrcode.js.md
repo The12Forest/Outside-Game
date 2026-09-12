@@ -1,0 +1,1 @@
+Add the file with the name `qrcode.js` into this directory, download it form [Here](https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js)!

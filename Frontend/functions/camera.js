@@ -15,15 +15,12 @@ async function startCamera(facingMode) {
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
                 facingMode: { ideal: facingMode },
-                // Ask for a high resolution up front; the browser clamps it
-                // to whatever the device supports.
                 width: { ideal: 4096 },
                 height: { ideal: 2160 },
             },
             audio: false,
         });
 
-        // Then push the track to the camera's actual maximum resolution.
         const track = stream.getVideoTracks()[0];
         const caps = track.getCapabilities?.();
         if (caps?.width?.max && caps?.height?.max) {
@@ -55,21 +52,19 @@ function switchCamera() {
     return startCamera(Camera_facing);
 }
 
-// Grabs the current video frame at the stream's native resolution.
 function takePhoto() {
+    stopVibrating() 
     const video = document.getElementById("video");
 
     if (!video || !video.videoWidth || !video.videoHeight) {
         return Promise.reject(new Error("No active camera stream"));
     }
 
-    // Use the video's native size, not the CSS/display size.
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
     const ctx = canvas.getContext("2d");
-    // Mirror the frame for the front camera so it matches the preview.
     if (Camera_facing === "user") {
         ctx.translate(canvas.width, 0);
         ctx.scale(-1, 1);
@@ -85,8 +80,6 @@ async function sendImage(blob, filename) {
     if (!blob) return { ok: false, error: "no blob" };
 
     try {
-        // Send the image bytes directly as the request body. The Content-Type
-        // must be the image's MIME type so express.raw() picks it up.
         const response = await fetch("/api/image/post", {
             method: "POST",
             headers: {
@@ -101,5 +94,17 @@ async function sendImage(blob, filename) {
     } catch (err) {
         console.error("Image upload failed:", err);
         return { ok: false, error: String(err) };
+    }
+}
+
+function stopCamera() {
+    if (!performance) { 
+        const video = document.getElementById("video");
+
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach((track) => track.stop());
+            video.srcObject = null;
+        }
+        video.classList.remove("mirror");
     }
 }

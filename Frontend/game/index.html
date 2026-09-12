@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Outsidegame</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style/style.css">
+    <link rel="stylesheet" href="style/countdown.css">
+    <link rel="stylesheet" href="style/image.css">
+    <link rel="stylesheet" href="style/responsive.css">
+    <link rel="stylesheet" href="style/bottomBaar.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Changa+One:ital@0;1&display=swap" rel="stylesheet">
@@ -13,19 +17,41 @@
     <div>
         <main>
             <div class="Head">
-                <h1>Game</h1>
+                <h1 id="title">Game</h1>
                 <p id="game_code"></p>
             </div>
-            <div id="camera">
-                <button id="Capture_image">Capture</button>
-                <video id="video" class="mirror" autoplay muted playsinline></video>
+            <div id="camera" class="invisible">
+                <video id="video" class="mirror" autoplay muted playsinline>Video Loading...</video>
+            </div>
+            <div id="countdown_div">
+                <p id="countdown_p">Countdown loading...</p>
+                <p id="countodwn_subtitle">Time to next Photo...</p>
+            </div>
+            <div id="linkToMaps" class="invisible" >
+                <p id="linkToMaps_p">The Oponent team failed to send a photo in time, you are here provided with a link to the current position of the oponents team, note it was last updated <b id="last_updated_position">loading...</b> seconds ago. The position won't update in Google Maps to get an update press the button one more time.</p>
+            </div>
+            <div id="image" class="invisible">
+                <img src="" alt="" id="image_container">
+            </div>
+            <div id="bottom_bar">
+                <button id="Capture_image" class="invisible">Capture</button>
+                <button id="startCameraBtn" class="invisible">Start Camera</button>
+                <button id="showImageBtn" class="invisible">See Image</button>
+                <button id="hideImageBtn" class="invisible">Disable Image</button>
+                <a id="linkToMaps_a" class="invisible" href="/error/?msg=faildeGPS&status=400">Go to Google Maps</a>
             </div>
         </main>
     </div>
 
     <script src="/functions/cookie.js"></script>
+    <script src="/functions/statemashine.js"></script>
+    <script src="/functions/telemetry.js"></script>
+    <script src="/functions/vibration.js"></script>
     <script src="/functions/camera.js"></script>
+    <script src="/functions/loadingtiles.js"></script>
     <script src="/functions/api.js"></script>
+    <script src="/functions/countdown.js"></script>
+    <script src="/functions/imageupdater.js"></script>
     <script src="main.js"></script>
 </body>
 </html>
